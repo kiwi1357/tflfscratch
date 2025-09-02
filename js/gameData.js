@@ -16,9 +16,10 @@ const gameData = {
     },
 
     characters: {
-        "bucky": { name: "Barnaby \"Bucky\" Webbs" },
-        "scarlett": { name: "Scarlett" },
-        "finley": { name: "Finley" }
+        // Characters are now explicitly linked to their main quest to prevent restarts.
+        "bucky": { name: "Barnaby \"Bucky\" Webbs", questId: "bridgeRepair" },
+        "scarlett": { name: "Scarlett", questId: "sugarAndSpice" },
+        "finley": { name: "Finley", questId: "aLostChapter" }
     },
     
     gameObjects: [
@@ -76,8 +77,11 @@ const gameData = {
                 choices: [
                     { text: "I have the driftwood right here.", nextNode: "turnInDriftwood", condition: { type: "HAS_ITEM", itemId: "driftwood" } },
                     { text: "[Gossip] Can I ask about something else?", nextNode: "gossip" },
-                    { text: "I'm still looking.", nextNode: "default" }
+                    { text: "I'm still looking.", nextNode: "stillLookingReply", condition: { type: "NOT_HAS_ITEM", itemId: "driftwood" } }
                 ]
+            },
+            "stillLookingReply": {
+                text: "Alright, pal. Keep at it. It's gotta be around here somewhere."
             },
             "turnInDriftwood": {
                 text: "Perfect! This is exactly what I needed. You're a natural handyman, you know that? A real talent for finding things.",
@@ -98,7 +102,6 @@ const gameData = {
                     { text: "What can you tell me about Scarlett?", nextNode: "gossip_scarlett", condition: { type: "HAS_FLAG", flag: "scarlett_met" } },
                     { text: "What about that shy fox, Finley?", nextNode: "gossip_finley", condition: { type: "HAS_FLAG", flag: "finley_met" } },
                     { text: "What's this Summer Festival about?", nextNode: "gossip_festival", condition: { type: "HAS_FLAG", flag: "scarlett_mentioned_finley" } },
-                    { text: "Nevermind.", nextNode: "default" }
                 ]
             },
             "gossip_scarlett": {
@@ -146,7 +149,7 @@ const gameData = {
                 text: "Any luck finding that bag for me, sweetie?",
                 choices: [
                     { text: "I found it right here!", nextNode: "turnInSugar", condition: { type: "HAS_ITEM", itemId: "sugar" } },
-                    { text: "I'm still looking.", nextNode: "default" }
+                    { text: "I'm still looking.", nextNode: "default", condition: { type: "NOT_HAS_ITEM", itemId: "sugar" } }
                 ]
             },
             "turnInSugar": {
@@ -196,7 +199,7 @@ const gameData = {
                 text: "I hope my book is okay... I'd be lost without it.",
                 choices: [
                     { text: "I think this is it!", nextNode: "turnInBook", condition: { type: "HAS_ITEM", itemId: "lost_book" } },
-                    { text: "I'll keep an eye out for it.", nextNode: "default" }
+                    { text: "I'll keep an eye out for it.", nextNode: "default", condition: { type: "NOT_HAS_ITEM", itemId: "lost_book" } }
                 ]
             },
             "turnInBook": {

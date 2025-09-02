@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Forest of Love [Engine v3]</title>
+    <title>The Forest of Love [v4 - Stable]</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- All HTML structure is the same as before -->
+    <!-- SCREEN 1: MAIN MENU -->
     <div id="main-menu-screen" class="screen">
         <h1>The Forest of Love</h1>
         <div>
@@ -17,14 +17,22 @@
         </div>
     </div>
 
+    <!-- SCREEN 2: THE ACTUAL GAME -->
     <div id="game-screen" class="screen">
-        <div id="world-space"></div>
+        <div id="world-space">
+            <!-- Game objects are dynamically created here by main.js -->
+        </div>
+
+        <!-- In-Game UI Elements -->
         <div id="interaction-prompt">Press [SPACE] to Interact</div>
+
         <div id="dialogue-overlay">
             <div id="dialogue-name"></div>
             <div id="dialogue-text"></div>
             <div id="dialogue-choices"></div>
         </div>
+
+        <!-- UI Modals -->
         <div id="quest-log" class="modal">
             <h2>Quest Log</h2>
             <div class="content">
@@ -32,6 +40,7 @@
                 <div id="quest-details" class="detail-panel"></div>
             </div>
         </div>
+
         <div id="critter-log" class="modal">
             <h2>Critter Log</h2>
             <div class="content">
@@ -39,13 +48,14 @@
                 <div id="critter-details" class="detail-panel"></div>
             </div>
         </div>
+
         <div id="inventory" class="modal">
             <h2>Inventory</h2>
             <div id="inventory-grid" class="content"></div>
         </div>
     </div>
 
-    <!-- Updated Script Loading Order -->
+    <!-- Script Loading Order is Critical -->
     <script src="js/gameData.js"></script>
     <script src="js/systems.js"></script>
     <script src="js/ui.js"></script>
