@@ -12,8 +12,7 @@ const engineInteraction = {
 
     handlePlayerMovement(keysPressed) {
         const gameState = this._getGameState();
-        const playerEl = document.getElementById('player');
-        if (!playerEl || !gameState) return;
+        if (!gameState) return;
 
         let { x, y } = gameState.player;
         const speed = gameData.settings.playerSpeed;
@@ -23,62 +22,62 @@ const engineInteraction = {
         if (keysPressed['a'] || keysPressed['arrowleft']) x -= speed;
         if (keysPressed['d'] || keysPressed['arrowright']) x += speed;
 
-        const world = document.getElementById('world-space').getBoundingClientRect();
-        x = Math.max(0, Math.min(x, world.width - playerEl.offsetWidth));
-        y = Math.max(0, Math.min(y, world.height - playerEl.offsetHeight));
+        const world = gameData.world;
+        const playerSprite = gameData.characters.player.sprite;
+        x = Math.max(0, Math.min(x, world.width - playerSprite.width));
+        y = Math.max(0, Math.min(y, world.height - playerSprite.height));
         
         gameState.player.x = x;
         gameState.player.y = y;
-        playerEl.style.left = x + 'px';
-        playerEl.style.top = y + 'px';
     },
 
     checkProximity() {
         const gameState = this._getGameState();
-        const playerEl = document.getElementById('player');
-        if (!playerEl || !gameState) return null;
+        if (!gameState) return null;
 
-        const playerRect = playerEl.getBoundingClientRect();
-        let closestInteractable = null;
+        const playerDef = gameData.characters.player;
+        const playerPoint = {
+            x: gameState.player.x + (playerDef.sprite.width / 2),
+            y: gameState.player.y + (playerDef.sprite.height / 2)
+        };
 
-        document.querySelectorAll('.game-object:not(#player)').forEach(obj => {
-            if (obj.style.display === 'none') return;
-            const objRect = obj.getBoundingClientRect();
-            const distance = Math.sqrt(
-                Math.pow((playerRect.x + playerRect.width / 2) - (objRect.x + objRect.width / 2), 2) + 
-                Math.pow((playerRect.y + playerRect.height / 2) - (objRect.y + objRect.height / 2), 2)
-            );
-            
-            if (distance < gameData.settings.interactionRadius) {
-                closestInteractable = obj;
+        // Find the first object the player is interacting with
+        for (const obj of gameData.gameObjects) {
+            const isRemoved = gameState.objectStates[obj.id]?.removed ?? obj.removed;
+            if (isRemoved) continue;
+
+            const definition = obj.type === 'character' ? gameData.characters[obj.id] : gameData.items[obj.id];
+            if (!definition || !definition.hitbox) continue;
+
+            // Translate hitbox to world coordinates
+            const worldHitbox = definition.hitbox.map(p => ({ x: p.x + obj.x, y: p.y + obj.y }));
+
+            if (enginePhysics.pointInPolygon(playerPoint, worldHitbox)) {
+                return obj; // Return the game object itself
             }
-        });
+        }
 
-        document.getElementById('interaction-prompt').style.display = closestInteractable ? 'block' : 'none';
-        return closestInteractable;
+        return null; // No interaction found
     },
 
-    /**
-     * THIS FUNCTION CONTAINS THE CORRECTED LOGIC
-     */
     interact(target) {
+        console.log("Interaction target:", JSON.stringify(target)); // NEW DEBUG LOG
         const gameState = this._getGameState();
         if (!target || !gameState) return null;
 
-        const id = target.dataset.id;
-        const type = target.classList.contains('character') ? 'character' : 'item';
+        const { id, type } = target;
         
         if (type === 'item') {
+            console.log('Attempting to pick up item:', id);
             // Add item to inventory if it's not already there
             if (!gameState.player.inventory.includes(id)) {
                 gameState.player.inventory.push(id);
             }
+            console.log('Inventory is now:', JSON.stringify(gameState.player.inventory));
             // Mark the object as removed in the game state
-            gameState.objectStates[id] = { removed: true };
-            // Hide the object visually
-            target.style.display = 'none';
+            if (!gameState.objectStates[id]) gameState.objectStates[id] = {};
+            gameState.objectStates[id].removed = true;
 
-            // --- THIS IS THE ROBUST FIX ---
             // Create a list of events to process based on which item was picked up
             let eventsToProcess = [];
             if (id === 'driftwood') {
